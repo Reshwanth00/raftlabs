@@ -2,7 +2,9 @@ const { createServer } = require("http");
 const next = require("next");
 const { Server } = require("socket.io");
 
-const dev = true;
+// 🔑 IMPORTANT: production-safe dev flag
+const dev = process.env.NODE_ENV !== "production";
+
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
@@ -12,7 +14,10 @@ app.prepare().then(() => {
   });
 
   const io = new Server(httpServer, {
-    cors: { origin: "*" },
+    cors: {
+      origin: "*", // OK for now; lock this down later
+      methods: ["GET", "POST"],
+    },
   });
 
   io.on("connection", (socket) => {
@@ -33,7 +38,10 @@ app.prepare().then(() => {
     });
   });
 
-  httpServer.listen(3000, () => {
-    console.log("🚀 Server running at http://localhost:3000");
+  // 🔑 IMPORTANT: Render decides the port
+  const PORT = process.env.PORT || 3000;
+
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
   });
 });
